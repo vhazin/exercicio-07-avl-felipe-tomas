@@ -1,187 +1,174 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 
 typedef struct node{
-	int num;
-	struct node *left;
-	struct node *right;
-	struct node *father;
-	int alt;
+  int altura;
+  int nome;
+  struct node* esquerda;
+  struct node* direita;
 }Node;
 
-int getaltura (Node *no){
-	if (no == NULL){
-		return 0;
-	}
-	else{
-		return(no->alt);
-	}
+Node* inserir (Node* raiz, int x);
+int getAlturas (Node* raiz);
+Node* rotacaoEsquerda(Node*raiz);
+Node* rotacaoDireita(Node* raiz);
+int getAltura(Node* raiz);
+void acharIndex(Node* raiz, int y, int size, );
+void emOrdem(Node* raiz);
+
+int main(){
+  Node* raiz = NULL;
+  int q;
+  scanf("%d", &q);
+
+  for (int i = 0; i < q; i++){
+    int x, y;
+    scanf("%d %d",&x, &y);
+
+    if(x == 1){
+      raiz = inserir(raiz, y);
+    }else{
+      acharIndex(raiz, y, q-1, output);
+    }
+
+  }
 }
 
-void atualizaAlt (Node *no){
-	int altDireita;
-	int altEsquerda;
+Node* inserir(Node* raiz,int x){
 
-	if (no != NULL)
-	{
-		altDireita = getaltura(no->right);
-		altEsquerda = getaltura(no->left);
-	
-	}
+  if(raiz == NULL){
+    raiz = (struct node*)malloc(sizeof(struct node));
+    raiz->nome = x;
+    raiz->esquerda = NULL;
+    raiz->direita  = NULL;
+  }
+  else{
+    if(x > raiz->nome){
+      raiz->direita = inserir(raiz->direita , x);
+      if(getAlturas(raiz) == -2){
+        if(x > raiz->direita->nome){
+          raiz = rotacaoEsquerda(raiz);
+        }else{
+          raiz->direita = rotacaoDireita(raiz->direita);
+          raiz = rotacaoEsquerda(raiz);
+        }
+      }
+    }
+    else{
+      if(x < raiz->nome){
+        raiz->esquerda = inserir(raiz->esquerda , x);
+        if(getAlturas(raiz) == 2){
+          if(x < raiz->esquerda->nome){
+            raiz = rotacaoDireita(raiz);
+          }else{
+
+            raiz->esquerda = rotacaoEsquerda(raiz->esquerda);
+            raiz = rotacaoDireita(raiz);
+          }
+        }
+      }
+    
+    raiz->altura = getAltura(raiz);
+    }
+  }
+  return(raiz);
 }
 
-Node* createTree (int info, Node *esq, Node *dir){
-	Node *raiz;
-	raiz = (Node*)malloc(sizeof(Node));
-
-	raiz->num = info;
-	raiz->left = esq;
-	raiz->right = dir;
-	esq->father = raiz;
-	dir->father = raiz;
-
-	return(raiz);
+int getAlturas(Node* raiz){
+  int esquerdah;
+  int direitah;
+  if(raiz == NULL){
+    return(0);
+  }
+ 
+  if(raiz->esquerda==NULL){
+    esquerdah = 0;
+  }
+  else{
+    esquerdah = 1 + raiz->esquerda->altura;
+  }
+ 
+  if(raiz->direita == NULL){
+    direitah = 0;
+  }
+  else{
+    direitah = 1 + raiz->direita->altura;
+  }
+ 
+  return(esquerdah - direitah);
 }
 
-Node* rotacaoEsquerda (Node *raiz){
-	Node *aux = (Node*)malloc(sizeof(Node));
-	aux = raiz->right;
-	raiz->right = aux->left;
-	aux->left = raiz;
-	aux->father = raiz->father;
-	raiz->father = aux;
-	raiz->right->father = raiz;
-	atualizaAlt(raiz->left);
-	atualizaAlt(raiz);
-
-	return (aux);
+Node* rotacaoEsquerda(Node*raiz){
+  Node* temp;
+  temp = raiz->direita;
+  raiz->direita = temp->esquerda;
+  temp->esquerda = raiz;
+  raiz->altura = getAltura(raiz);
+  temp->altura = getAltura(temp);
+  
+  return temp;
 }
 
-Node* rotacaoDireita (Node *raiz){
-	Node *aux =(Node*) malloc(sizeof(Node));
-	aux = raiz->left;
-	raiz->left = aux->right;
-	aux->right = raiz;
-	aux->father = raiz->father;
-	raiz->father = aux;
-	raiz->left->father = raiz;
-	atualizaAlt(raiz->right);
-	atualizaAlt(raiz);
-
-	return (aux);
+Node* rotacaoDireita(Node* raiz){
+  Node* temp;
+  temp = raiz->esquerda;
+  raiz->esquerda = temp->direita;
+  temp->direita = raiz;
+  raiz->altura = getAltura(raiz);
+  temp->altura = getAltura(temp);
+  return temp;
 }
 
-Node* rotacaoDuplaEsquerda (Node *raiz){
-	Node *resultado =(Node*) malloc(sizeof(Node));
-
-	raiz->right = rotacaoDireita(raiz->right);
-	resultado = rotacaoEsquerda(raiz->left);
-
-	return(resultado);
+int getAltura(Node* raiz){
+  int esquerdah;
+  int direitah;
+  if(raiz == NULL){
+    return 0;
+  }
+  
+  if(raiz->esquerda == NULL){
+    esquerdah = 0;
+  }else{
+    esquerdah = 1 + raiz->esquerda->altura;
+  }
+    
+  if(raiz->direita == NULL){
+    direitah = 0;
+  }else{
+    direitah = 1 + raiz->direita->altura;
+  }
+  
+  if(esquerdah > direitah){
+    return(esquerdah);
+  }
+  
+  return(direitah);
 }
 
+void acharIndex(Node* raiz, int y, int size){
+  static int count = 0;
+  if(raiz != NULL){
+    acharIndex(raiz->esquerda, y, size);
+    count++;
+    if(raiz->nome == y){
+      printf("%d \n", count - 1);
+      return;
+    }else if(count == size){
+      printf("Data tidak ada\n");
+    }
+    acharIndex(raiz->direita, y, size);
 
-
-Node* rotacaoDuplaDireita (Node *raiz){
-	Node *resultado =(Node*) malloc(sizeof(Node));
-	raiz->left = rotacaoEsquerda(raiz->left);
-	resultado = rotacaoDireita(raiz->right);
-
-	return(resultado);
+  }
+  
 }
 
-void inserir (int x, Node *raiz){
-
-	if (raiz == NULL)
-	{
-		raiz =(Node*) malloc(sizeof(Node));
-		raiz->num = x;
-		raiz->left = NULL;
-		raiz->right = NULL;
-		raiz->alt = 1;
-	}
-	else{
-		if (x < raiz->num){
-			inserir(x, raiz->left);
-			if (((getaltura(raiz->left)) - (getaltura(raiz->right))) == 2){
-				if (x < raiz->left->num){
-					rotacaoDireita(raiz);
-				}
-				else{
-					rotacaoDuplaDireita(raiz);
-				}
-			}
-
-		}
-		else{
-			inserir(x, raiz->right);
-			if (((getaltura(raiz->right)) - (getaltura(raiz->left))) == 2){
-				if (x > raiz->right->num){
-					rotacaoEsquerda(raiz);
-				}
-				else{
-					rotacaoDuplaEsquerda(raiz);
-				}
-			}
-		}
-	}
-	atualizaAlt(raiz);
+void emOrdem(Node* raiz){
+  if(raiz != NULL){
+    emOrdem(raiz->esquerda);
+    printf("%d\n",raiz->nome);
+    emOrdem(raiz->direita);
+  }
 }
-
-void inOrdem(Node *x){
-	if (x != NULL){
-		inOrdem(x->left);
-		printf("%d\n",x );
-		inOrdem(x->right);
-	}
-}
-
-Node* buscar(int value, Node *tree){
-	if (tree == NULL){
-		return (NULL);
-	}
-	else{
-		if (value == tree->num){
-			return(tree);
-		}
-		if (value < tree->num){
-			return(buscar(value, tree->left));
-		}
-		else{
-			return(buscar(value, tree->right));
-		}
-	}
-}
-		
-
-
-
-
-
-int main (){
-	int info, Q, k;
-	Node *esq, *dir, *father;
-
-	scanf("%i", &Q);
-
-	for (int i = 0; i < Q; i++){
-		scanf("%i %i", &k, &info);
-
-		if (k == 1)
-		{
-			inserir(info, father);
-		}
-
-		if (k == 2){
-            Node* x = buscar(info, father);
-		      if (x == NULL){
-		          printf("Data tidak ada");
-		      }
-		      else{
-		          printf("%i", x->alt);
-		      }
-		        }
 	}
 
 	return 0;
